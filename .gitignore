@@ -46,3 +46,38 @@ wp-config.php
 # Note: If you wish to whitelist themes,
 # uncomment the next line
 #/wp-content/themes
+# WordPress
+wp-config.php
+wp-content/uploads/
+wp-content/cache/
+.htaccess
+
+# Plugin specific
+uploads/
+*.log
+
+# Development
+node_modules/
+vendor/
+.DS_Store
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.claude
+
+# Internal deployment and setup notes
+DEPLOYMENT-CHECKLIST.md
+DEPLOYMENT-SUMMARY.md
+FIXES-v0.1.1.md
+ROBUSTNESS-REVIEW.md
+TESTING-FIXES-SUMMARY.md
+UPDATE-NOTES.md
+WORDPRESS-REGISTRATION-SETUP.md
+INSTALL.md
+QUICK-START.md
+readme.txt

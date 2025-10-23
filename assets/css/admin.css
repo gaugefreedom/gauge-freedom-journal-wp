@@ -1,0 +1,825 @@
+/**
+ * Gauge Freedom Journal - Admin Styles
+ * WordPress admin area styling for metaboxes and editorial functions
+ */
+
+/* ========================================
+   Admin Variables
+   ======================================== */
+
+:root {
+    --gfj-admin-primary: #2271b1;
+    --gfj-admin-primary-hover: #135e96;
+    --gfj-admin-success: #00a32a;
+    --gfj-admin-warning: #dba617;
+    --gfj-admin-danger: #d63638;
+    --gfj-admin-gray: #dcdcde;
+    --gfj-admin-border: #c3c4c7;
+}
+
+/* ========================================
+   Metabox Styling
+   ======================================== */
+
+.gfj-triage-box {
+    background: #fff;
+}
+
+.gfj-triage-box p {
+    margin: 12px 0;
+}
+
+.gfj-triage-box label {
+    display: block;
+    margin: 10px 0;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.gfj-triage-box label:hover {
+    background: #f6f7f7;
+}
+
+.gfj-triage-box input[type="radio"] {
+    margin-right: 8px;
+}
+
+.gfj-triage-box textarea {
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px;
+    border: 1px solid var(--gfj-admin-border);
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.gfj-triage-box .button-primary {
+    margin-top: 15px;
+    width: 100%;
+}
+
+/* Reviews Section */
+.gfj-reviews-section h4 {
+    margin: 20px 0 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.gfj-reviews-section .wp-list-table {
+    margin: 15px 0;
+}
+
+.gfj-reviews-section select {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.gfj-reviews-section .button {
+    margin-top: 10px;
+}
+
+/* File Information Display */
+.file-info {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #f0f0f1;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #2c3338;
+}
+
+/* Manuscript Details Metabox */
+#gfj_manuscript_details .form-table th {
+    width: 200px;
+    padding: 15px 10px 15px 0;
+    vertical-align: top;
+}
+
+#gfj_manuscript_details .form-table td {
+    padding: 15px 10px;
+}
+
+#gfj_manuscript_details textarea {
+    width: 100%;
+    min-height: 100px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+#gfj_manuscript_details input[type="text"],
+#gfj_manuscript_details input[type="url"] {
+    width: 100%;
+    font-size: 13px;
+}
+
+#gfj_manuscript_details .description {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #646970;
+}
+
+/* Files Metabox */
+#gfj_manuscript_files .form-table th {
+    width: 220px;
+    padding: 15px 10px 15px 0;
+    vertical-align: top;
+}
+
+#gfj_manuscript_files .button {
+    margin-right: 10px;
+}
+
+#gfj_manuscript_files input[type="file"] {
+    width: 100%;
+    max-width: 400px;
+}
+
+#gfj_manuscript_files .description {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #646970;
+}
+
+#gfj_manuscript_files .description[style*="color: #d63638"] {
+    font-weight: 600;
+}
+
+/* ========================================
+   Review Modal
+   ======================================== */
+
+.gfj-review-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.gfj-review-modal {
+    background: #fff;
+    border-radius: 8px;
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.gfj-review-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #dcdcde;
+}
+
+.gfj-review-modal .modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.gfj-review-modal .modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    color: #646970;
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.gfj-review-modal .modal-close:hover {
+    background: #f0f0f1;
+    color: #2c3338;
+}
+
+.gfj-review-modal .modal-body {
+    padding: 24px;
+    overflow-y: auto;
+}
+
+.gfj-review-modal .modal-body h3 {
+    margin: 24px 0 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.gfj-review-modal .modal-body h3:first-child {
+    margin-top: 0;
+}
+
+.gfj-review-modal .review-scores {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+}
+
+.gfj-review-modal .review-scores td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.gfj-review-modal .review-scores td:first-child {
+    font-weight: 600;
+    color: #646970;
+    width: 200px;
+}
+
+.gfj-review-modal .review-scores td:last-child {
+    font-weight: 600;
+    color: var(--gfj-admin-primary);
+}
+
+.gfj-review-modal .review-comments {
+    background: #f6f7f7;
+    padding: 16px;
+    border-radius: 4px;
+    line-height: 1.6;
+    color: #2c3338;
+    white-space: pre-wrap;
+}
+
+/* ========================================
+   Admin Notices & Messages
+   ======================================== */
+
+.gfj-admin-notice {
+    margin: 15px 0;
+    padding: 12px;
+    border-left: 4px solid;
+    background: #fff;
+    border-radius: 0 4px 4px 0;
+}
+
+.gfj-admin-notice.success {
+    border-left-color: var(--gfj-admin-success);
+    background: #edfaef;
+}
+
+.gfj-admin-notice.error {
+    border-left-color: var(--gfj-admin-danger);
+    background: #fcf0f1;
+}
+
+.gfj-admin-notice.warning {
+    border-left-color: var(--gfj-admin-warning);
+    background: #fcf9e8;
+}
+
+/* Auto-save Indicator */
+input.saved,
+textarea.saved {
+    border-color: var(--gfj-admin-success) !important;
+    animation: saved-flash 0.5s ease;
+}
+
+@keyframes saved-flash {
+    0%, 100% {
+        border-color: var(--gfj-admin-border);
+    }
+    50% {
+        border-color: var(--gfj-admin-success);
+    }
+}
+
+/* ========================================
+   Stage Indicators
+   ======================================== */
+
+.stage-indicator {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stage-indicator.triage {
+    background: #fcf9e8;
+    color: #846a1c;
+}
+
+.stage-indicator.review {
+    background: #e5f2ff;
+    color: #135e96;
+}
+
+.stage-indicator.revision {
+    background: #fef0e6;
+    color: #9a3412;
+}
+
+.stage-indicator.accepted {
+    background: #edfaef;
+    color: #0f5323;
+}
+
+.stage-indicator.rejected {
+    background: #fcf0f1;
+    color: #8c1823;
+}
+
+.stage-indicator.published {
+    background: #f0f0f1;
+    color: #2c3338;
+}
+
+/* ========================================
+   Workflow Actions
+   ======================================== */
+
+.gfj-workflow-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.gfj-workflow-actions .button {
+    flex: 1;
+}
+
+/* ========================================
+   Manuscript List (Custom Post Type List)
+   ======================================== */
+
+.post-type-gfj_manuscript .tablenav {
+    margin-bottom: 10px;
+}
+
+.post-type-gfj_manuscript .wp-list-table .column-title {
+    width: 30%;
+}
+
+.post-type-gfj_manuscript .wp-list-table .column-author {
+    width: 15%;
+}
+
+.post-type-gfj_manuscript .wp-list-table .column-taxonomy-manuscript_stage {
+    width: 12%;
+}
+
+.post-type-gfj_manuscript .wp-list-table .column-taxonomy-manuscript_type {
+    width: 15%;
+}
+
+.post-type-gfj_manuscript .wp-list-table .column-date {
+    width: 12%;
+}
+
+/* Anonymous Author Display */
+.anonymous-author {
+    color: #646970;
+    font-style: italic;
+}
+
+.anonymous-author::before {
+    content: "🔒 ";
+}
+
+/* ========================================
+   Bulk Actions
+   ======================================== */
+
+.gfj-bulk-actions {
+    background: #f6f7f7;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.gfj-bulk-actions h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.gfj-bulk-actions select,
+.gfj-bulk-actions input {
+    margin-right: 10px;
+}
+
+/* ========================================
+   Dashboard Widgets
+   ======================================== */
+
+.gfj-dashboard-widget {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 0;
+    margin-bottom: 20px;
+}
+
+.gfj-dashboard-widget .widget-header {
+    padding: 12px 15px;
+    border-bottom: 1px solid #c3c4c7;
+    background: #f6f7f7;
+}
+
+.gfj-dashboard-widget .widget-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.gfj-dashboard-widget .widget-content {
+    padding: 15px;
+}
+
+.gfj-dashboard-widget ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.gfj-dashboard-widget li {
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.gfj-dashboard-widget li:last-child {
+    border-bottom: none;
+}
+
+/* ========================================
+   Reviewer Selection
+   ======================================== */
+
+.reviewer-card {
+    background: #f6f7f7;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.reviewer-info {
+    flex: 1;
+}
+
+.reviewer-info .name {
+    font-weight: 600;
+    color: #1d2327;
+    margin-bottom: 4px;
+}
+
+.reviewer-info .email {
+    font-size: 12px;
+    color: #646970;
+}
+
+.reviewer-info .stats {
+    font-size: 12px;
+    color: #646970;
+    margin-top: 4px;
+}
+
+.reviewer-actions {
+    margin-left: 15px;
+}
+
+/* ========================================
+   Timeline/Activity Log
+   ======================================== */
+
+.gfj-timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.gfj-timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dcdcde;
+}
+
+.gfj-timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.gfj-timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -26px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--gfj-admin-primary);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px var(--gfj-admin-primary);
+}
+
+.gfj-timeline-item.success::before {
+    background: var(--gfj-admin-success);
+    box-shadow: 0 0 0 2px var(--gfj-admin-success);
+}
+
+.gfj-timeline-item.warning::before {
+    background: var(--gfj-admin-warning);
+    box-shadow: 0 0 0 2px var(--gfj-admin-warning);
+}
+
+.gfj-timeline-item .timeline-content {
+    background: #f6f7f7;
+    padding: 12px;
+    border-radius: 4px;
+}
+
+.gfj-timeline-item .timeline-date {
+    font-size: 12px;
+    color: #646970;
+    margin-top: 4px;
+}
+
+/* ========================================
+   Tooltips
+   ======================================== */
+
+.gfj-tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted var(--gfj-admin-border);
+    cursor: help;
+}
+
+.gfj-tooltip .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: #1d2327;
+    color: #fff;
+    text-align: center;
+    border-radius: 4px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+}
+
+.gfj-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* ========================================
+   Loading States
+   ======================================== */
+
+.gfj-loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid var(--gfj-admin-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.button .gfj-loading {
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+/* ========================================
+   Responsive Admin
+   ======================================== */
+
+@media screen and (max-width: 782px) {
+    .gfj-review-modal {
+        max-width: 95%;
+    }
+
+    .gfj-workflow-actions {
+        flex-direction: column;
+    }
+
+    .reviewer-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .reviewer-actions {
+        margin: 10px 0 0 0;
+        width: 100%;
+    }
+}
+
+/* ========================================
+   Review Details Modal
+   ======================================== */
+
+#gfj-review-modal {
+    display: none;
+    position: fixed;
+    z-index: 100000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+#gfj-review-modal .gfj-modal-content {
+    background-color: #fff;
+    margin: 2% auto;
+    padding: 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.gfj-modal-close {
+    color: #666;
+    float: right;
+    font-size: 32px;
+    font-weight: bold;
+    line-height: 1;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.gfj-modal-close:hover,
+.gfj-modal-close:focus {
+    color: #d63638;
+}
+
+.gfj-modal-body {
+    padding: 20px 30px 30px;
+}
+
+.gfj-review-details h2 {
+    margin: 0 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #2271b1;
+    color: #2271b1;
+}
+
+.gfj-review-details .review-section {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f6f7f7;
+    border-radius: 6px;
+}
+
+.gfj-review-details .review-section h3 {
+    margin: 0 0 12px;
+    color: #1d2327;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.gfj-review-details .review-section p {
+    margin: 8px 0;
+    line-height: 1.6;
+}
+
+.review-recommendation {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.review-recommendation.recommendation-accept {
+    background: #00a32a;
+    color: #fff;
+}
+
+.review-recommendation.recommendation-minor_revision {
+    background: #dba617;
+    color: #fff;
+}
+
+.review-recommendation.recommendation-major_revision {
+    background: #f0a000;
+    color: #fff;
+}
+
+.review-recommendation.recommendation-reject {
+    background: #d63638;
+    color: #fff;
+}
+
+.review-scores-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.review-scores-table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.review-scores-table td:first-child {
+    font-weight: 500;
+    color: #1d2327;
+}
+
+.review-scores-table td:last-child {
+    text-align: right;
+    width: 80px;
+}
+
+.score-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #2271b1;
+    color: #fff;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.review-comments {
+    background: #fff;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    line-height: 1.7;
+    color: #1d2327;
+}
+
+.gfj-loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 16px;
+    color: #666;
+}
+
+.gfj-modal-body .error {
+    padding: 20px;
+    background: #fcf0f1;
+    border: 1px solid #d63638;
+    border-radius: 4px;
+    color: #d63638;
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+
+@media print {
+    .gfj-review-modal .modal-close,
+    .button,
+    .gfj-workflow-actions {
+        display: none;
+    }
+
+    .gfj-review-modal-overlay {
+        position: static;
+        background: none;
+    }
+
+    .gfj-review-modal {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+}
