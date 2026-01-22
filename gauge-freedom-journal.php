@@ -3,7 +3,7 @@
  * Plugin Name: Gauge Freedom Journal
  * Plugin URI: https://gaugefreedom.org
  * Description: Academic journal management system with double-blind peer review, workflow management, and human+AI collaboration
- * Version: 0.1.0
+ * Version: 0.2.0
  * Author: Gauge Freedom, Inc.
  * Author URI: https://gaugefreedom.org
  * License: GPL-2.0+

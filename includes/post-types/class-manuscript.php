@@ -75,12 +75,13 @@ class GFJ_Manuscript_Post_Type {
     private function create_default_terms() {
         // Article types
         $article_types = [
-            'research' => 'Research Article',
-            'short' => 'Short Communication',
-            'protocol' => 'Registered Protocol',
-            'perspective' => 'Perspective/Tutorial',
+            'editorial'       => 'Editorial',
+            'research'        => 'Research Article',
+            'short'           => 'Short Communication',
+            'protocol'        => 'Registered Protocol',
+            'perspective'     => 'Perspective/Tutorial',
             'reproducibility' => 'Reproducibility Report',
-            'dataset' => 'Dataset/Software Note',
+            'dataset'         => 'Dataset/Software Note',
         ];
         
         foreach ($article_types as $slug => $name) {
@@ -155,7 +156,106 @@ class GFJ_Manuscript_Post_Type {
                     'default'
                 );
             }
+
+            // Publish Action (Editors only, for Accepted manuscripts)
+            if (current_user_can('publish_posts')) {
+                add_meta_box(
+                    'gfj_publish_action',
+                    'Publishing',
+                    [$this, 'render_publish_metabox'],
+                    'gfj_manuscript',
+                    'side',
+                    'high'
+                );
+            }
         });
+    }
+
+    /**
+     * Render publish action metabox
+     */
+    public function render_publish_metabox($post) {
+        $stage = wp_get_post_terms($post->ID, 'manuscript_stage', ['fields' => 'slugs']);
+        $current_stage = !empty($stage) ? $stage[0] : '';
+        
+        if ($current_stage === 'published') {
+            echo '<p>✅ <strong>This manuscript has been published.</strong></p>';
+            
+            // Link to the published article if we can find it
+            $args = [
+                'post_type' => 'gfj_article',
+                'meta_key' => '_gfj_source_manuscript_id',
+                'meta_value' => $post->ID,
+                'posts_per_page' => 1
+            ];
+            $articles = get_posts($args);
+            
+            if (!empty($articles)) {
+                $article = $articles[0];
+                echo '<p><a href="' . get_edit_post_link($article->ID) . '" class="button">Edit Published Article</a></p>';
+                echo '<p><a href="' . get_permalink($article->ID) . '" class="button button-primary" target="_blank">View Article</a></p>';
+            }
+            return;
+        }
+
+        if ($current_stage !== 'accepted') {
+            echo '<p><em>Manuscript must be "Accepted" before it can be published.</em></p>';
+            echo '<p>Current Status: <strong>' . ucfirst($current_stage) . '</strong></p>';
+            return;
+        }
+
+        ?>
+        <div class="gfj-publish-box">
+            <p>This manuscript has been accepted. You can now promote it to a public article.</p>
+            
+            <!-- Hidden data for JS -->
+            <div id="gfj-publish-data" 
+                 data-action="<?php echo admin_url('admin-post.php'); ?>"
+                 data-manuscript="<?php echo $post->ID; ?>"
+                 data-nonce="<?php echo wp_create_nonce('gfj_publish_article_' . $post->ID); ?>">
+            </div>
+            
+            <p>
+                <button type="button" id="gfj-publish-btn" class="button button-primary button-large" style="width: 100%;">
+                    🚀 Publish to Journal
+                </button>
+            </p>
+            <p class="description">
+                This will create a new Public Article, copy metadata, and mark this manuscript as Published.
+            </p>
+
+            <script>
+            document.getElementById('gfj-publish-btn').addEventListener('click', function() {
+                if (!confirm('Are you sure you want to publish this manuscript? This will create a new public article draft.')) {
+                    return;
+                }
+
+                var data = document.getElementById('gfj-publish-data').dataset;
+                
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = data.action;
+                
+                var fields = {
+                    'action': 'gfj_publish_article',
+                    'manuscript_id': data.manuscript,
+                    'gfj_publish_nonce': data.nonce
+                };
+
+                for (var key in fields) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = fields[key];
+                    form.appendChild(input);
+                }
+
+                document.body.appendChild(form);
+                form.submit();
+            });
+            </script>
+        </div>
+        <?php
     }
     
     /**
@@ -253,7 +353,7 @@ class GFJ_Manuscript_Post_Type {
                 <th>Blinded Manuscript (PDF)</th>
                 <td>
                     <?php if ($blinded_file): ?>
-                        <a href="<?php echo wp_get_attachment_url($blinded_file); ?>" class="button" target="_blank">
+                        <a href="<?php echo GFJ_File_Handler::get_download_url($blinded_file); ?>" class="button" target="_blank">
                             📄 View Blinded Version
                         </a>
                         <?php if ($current_stage === 'triage' && current_user_can('triage_manuscripts')): ?>
@@ -276,7 +376,7 @@ class GFJ_Manuscript_Post_Type {
                 <th>Full Manuscript (PDF)</th>
                 <td>
                     <?php if ($full_file): ?>
-                        <a href="<?php echo wp_get_attachment_url($full_file); ?>" class="button" target="_blank">
+                        <a href="<?php echo GFJ_File_Handler::get_download_url($full_file); ?>" class="button" target="_blank">
                             📄 View Full Version
                         </a>
                         <?php if ($current_stage === 'triage'): ?>
@@ -293,7 +393,7 @@ class GFJ_Manuscript_Post_Type {
                 <th>LaTeX Sources (ZIP)</th>
                 <td>
                     <?php if ($latex_file): ?>
-                        <a href="<?php echo wp_get_attachment_url($latex_file); ?>" class="button" target="_blank">
+                        <a href="<?php echo GFJ_File_Handler::get_download_url($latex_file); ?>" class="button" target="_blank">
                             📦 Download Sources
                         </a>
                     <?php else: ?>
@@ -306,13 +406,30 @@ class GFJ_Manuscript_Post_Type {
                 <th>CAR File (JSON)</th>
                 <td>
                     <?php if ($car_file): ?>
-                        <a href="<?php echo wp_get_attachment_url($car_file); ?>" class="button" target="_blank">
+                        <a href="<?php echo GFJ_File_Handler::get_download_url($car_file); ?>" class="button" target="_blank">
                             🔐 View CAR
                         </a>
                     <?php else: ?>
                         <input type="file" name="gfj_car_file" accept=".json,.car">
                     <?php endif; ?>
                     <p class="description">Content-Addressable Receipt</p>
+                </td>
+            </tr>
+            
+            <?php 
+            $artifacts_file = get_post_meta($post->ID, '_gfj_artifacts_file', true);
+            ?>
+            <tr>
+                <th>Artifacts Bundle (ZIP)</th>
+                <td>
+                    <?php if ($artifacts_file): ?>
+                        <a href="<?php echo GFJ_File_Handler::get_download_url($artifacts_file); ?>" class="button" target="_blank">
+                            📦 Download Artifacts
+                        </a>
+                    <?php else: ?>
+                        <input type="file" name="gfj_artifacts_file" accept=".zip">
+                    <?php endif; ?>
+                    <p class="description">Additional logs, datasets, etc.</p>
                 </td>
             </tr>
             <?php endif; ?>

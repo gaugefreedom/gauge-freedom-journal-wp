@@ -1624,3 +1624,426 @@ button[type="submit"]:disabled {
         font-size: 12px;
     }
 }
+
+/* ========================================
+   Single Article Template Styles
+   ======================================== */
+
+.gfj-article-container,
+.gfj-archive-container {
+    max-width: 1400px; /* Increased from 1200px */
+    width: 100%;
+    margin: 40px auto;
+    padding: 20px;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.gfj-article-wrapper {
+    background: #fff;
+    border-radius: var(--gfj-border-radius);
+    box-shadow: var(--gfj-shadow);
+    overflow: hidden;
+}
+
+/* Header */
+.gfj-article-header {
+    background: #f8fafc;
+    padding: 40px;
+    border-bottom: 1px solid var(--gfj-gray-200);
+}
+
+.gfj-article-meta-top {
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: var(--gfj-gray-600);
+    display: flex;
+    gap: 20px;
+}
+
+.gfj-article-type a {
+    color: var(--gfj-primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+.gfj-article-title {
+    font-size: 36px;
+    line-height: 1.2;
+    margin: 0 0 20px;
+    color: var(--gfj-gray-900);
+}
+
+.gfj-article-authors {
+    font-size: 18px;
+    color: var(--gfj-gray-800);
+    margin-bottom: 15px;
+}
+
+.gfj-article-doi {
+    font-size: 14px;
+}
+
+.gfj-article-doi a {
+    color: var(--gfj-gray-600);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--gfj-gray-400);
+}
+
+/* Layout Grid */
+.gfj-article-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 40px;
+    padding: 40px;
+}
+
+/* Main Content */
+.gfj-article-main section {
+    margin-bottom: 40px;
+}
+
+.gfj-article-main h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: var(--gfj-gray-900);
+    border-bottom: 2px solid var(--gfj-gray-200);
+    padding-bottom: 10px;
+}
+
+.gfj-article-main h3 {
+    font-size: 20px;
+    margin-bottom: 15px;
+    color: var(--gfj-gray-800);
+}
+
+.gfj-abstract-content {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--gfj-gray-800);
+}
+
+.gfj-box-highlight {
+    background: #f0f9ff;
+    border-left: 4px solid var(--gfj-primary);
+    padding: 20px;
+    border-radius: var(--gfj-border-radius);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--gfj-gray-800);
+}
+
+.gfj-findings-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.gfj-findings-list li {
+    position: relative;
+    padding-left: 25px;
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.gfj-findings-list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--gfj-success);
+    font-weight: bold;
+}
+
+.gfj-article-content {
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--gfj-gray-800);
+}
+
+.gfj-article-ai-disclosure {
+    background: var(--gfj-gray-50);
+    padding: 20px;
+    border-radius: var(--gfj-border-radius);
+    font-size: 14px;
+    color: var(--gfj-gray-600);
+    border: 1px solid var(--gfj-gray-200);
+}
+
+.gfj-article-ai-disclosure h4 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: var(--gfj-gray-500);
+}
+
+/* Sidebar */
+.gfj-sticky-sidebar {
+    position: sticky;
+    top: 20px;
+}
+
+.gfj-action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.gfj-btn-download {
+    width: 100%;
+    text-align: center;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.gfj-btn-pdf {
+    background: var(--gfj-primary);
+}
+
+.gfj-btn-artifacts {
+    background: var(--gfj-gray-800);
+}
+
+.gfj-btn-artifacts:hover {
+    background: var(--gfj-gray-900);
+}
+
+.gfj-sidebar-section {
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: var(--gfj-border-radius);
+    margin-bottom: 20px;
+    border: 1px solid var(--gfj-gray-200);
+}
+
+.gfj-sidebar-section h3 {
+    margin: 0 0 15px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gfj-gray-900);
+}
+
+.gfj-citation-content {
+    font-size: 14px;
+    color: var(--gfj-gray-700);
+}
+
+.gfj-toggle-bibtex {
+    margin-top: 10px;
+    font-size: 12px;
+}
+
+.gfj-bibtex-code {
+    margin-top: 10px;
+    background: #fff;
+    padding: 10px;
+    border: 1px solid var(--gfj-gray-300);
+    border-radius: 4px;
+    font-size: 11px;
+    overflow-x: auto;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+    .gfj-article-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .gfj-sticky-sidebar {
+        position: static;
+    }
+    
+    .gfj-action-buttons {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .gfj-btn-download {
+        flex: 1;
+    }
+}
+
+/* ========================================
+   Archive / Volume List Styles
+   ======================================== */
+
+.gfj-archive-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.gfj-archive-header {
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--gfj-gray-200);
+    padding-bottom: 20px;
+}
+
+.gfj-archive-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--gfj-gray-900);
+    margin: 0 0 10px;
+}
+
+.gfj-archive-description {
+    font-size: 16px;
+    color: var(--gfj-gray-600);
+}
+
+.gfj-volume-section {
+    margin-bottom: 50px;
+}
+
+.gfj-volume-title {
+    background: #f1f5f9;
+    padding: 15px 20px;
+    border-bottom: 2px solid var(--gfj-gray-300);
+    margin: 0 0 20px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gfj-gray-800);
+    border-radius: var(--gfj-border-radius) var(--gfj-border-radius) 0 0;
+}
+
+.gfj-preprints-section .gfj-volume-title {
+    background: #f0fdf4;
+    border-bottom-color: #86efac;
+    color: #166534;
+}
+
+/* Article Card Row */
+.gfj-article-card {
+    display: flex;
+    align-items: flex-start;
+    padding: 20px;
+    background: #fff;
+    border-bottom: 1px solid var(--gfj-gray-200);
+    gap: 20px;
+    transition: background-color 0.2s;
+}
+
+.gfj-article-card:hover {
+    background: var(--gfj-gray-50);
+}
+
+.gfj-article-card:last-child {
+    border-bottom: none;
+}
+
+/* Left: Date & Type */
+.gfj-card-left {
+    width: 120px;
+    flex-shrink: 0;
+    text-align: right;
+    padding-top: 4px;
+}
+
+.gfj-card-date {
+    display: block;
+    font-weight: 600;
+    color: var(--gfj-gray-900);
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.gfj-card-type {
+    display: block;
+    font-size: 12px;
+    color: var(--gfj-gray-500);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+/* Middle: Info */
+.gfj-card-middle {
+    flex-grow: 1;
+}
+
+.gfj-card-title {
+    margin: 0 0 8px;
+    font-size: 18px;
+    line-height: 1.4;
+}
+
+.gfj-card-title a {
+    color: var(--gfj-primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.gfj-latest-articles-container .gfj-card-title a,
+.gfj-archive-container .gfj-card-title a {
+    color: #111827 !important;
+}
+
+.gfj-latest-articles-container .gfj-card-title a:hover,
+.gfj-archive-container .gfj-card-title a:hover {
+    color: #0f172a !important;
+}
+
+.gfj-card-title a:hover {
+    text-decoration: underline;
+}
+
+.gfj-card-authors {
+    font-size: 15px;
+    color: var(--gfj-gray-700);
+    font-style: italic;
+    margin-bottom: 6px;
+}
+
+.gfj-card-doi {
+    font-size: 13px;
+    color: var(--gfj-gray-500);
+}
+
+/* Right: Action */
+.gfj-card-right {
+    width: 100px;
+    flex-shrink: 0;
+    text-align: right;
+    padding-top: 2px;
+    padding-right: 8px;
+    box-sizing: border-box;
+}
+
+.gfj-card-right .button {
+    width: 100%;
+    justify-content: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .gfj-article-card {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .gfj-card-left {
+        width: 100%;
+        text-align: left;
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+    }
+
+    .gfj-card-right {
+        width: 100%;
+        text-align: left;
+    }
+
+    .gfj-card-right .button {
+        width: auto;
+    }
+}

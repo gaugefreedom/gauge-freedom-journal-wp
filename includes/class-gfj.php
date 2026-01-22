@@ -14,6 +14,8 @@ class GFJ {
     protected $loader;
     protected $plugin_name;
     protected $version;
+    protected $public;
+    protected $publisher_handler;
 
     public function __construct() {
         $this->version = GFJ_VERSION;
@@ -32,27 +34,44 @@ class GFJ {
         require_once GFJ_PLUGIN_DIR . 'includes/roles/class-gfj-roles.php';
         require_once GFJ_PLUGIN_DIR . 'includes/access-control/class-permissions.php';
         require_once GFJ_PLUGIN_DIR . 'includes/post-types/class-manuscript.php';
+        require_once GFJ_PLUGIN_DIR . 'includes/post-types/class-gfj-article.php';
         require_once GFJ_PLUGIN_DIR . 'includes/class-gfj-login.php';
 
         // Handlers
         require_once GFJ_PLUGIN_DIR . 'includes/handlers/class-file-handler.php';
         require_once GFJ_PLUGIN_DIR . 'includes/handlers/class-ajax-handler.php';
         require_once GFJ_PLUGIN_DIR . 'includes/handlers/class-metabox-handler.php';
+        require_once GFJ_PLUGIN_DIR . 'includes/handlers/class-publisher-handler.php';
 
         // Access control
         require_once GFJ_PLUGIN_DIR . 'includes/access-control/class-query-filters.php';
 
         // Initialize post type
         new GFJ_Manuscript_Post_Type();
+        new GFJ_Article_Post_Type();
 
         // Initialize login handler
         new GFJ_Login();
+
+        // Initialize public facing
+        require_once GFJ_PLUGIN_DIR . 'public/class-gfj-public.php';
+        $this->public = new GFJ_Public($this->plugin_name, $this->version);
+
+        // Initialize publisher handler
+        $this->publisher_handler = new GFJ_Publisher_Handler();
     }
 
     /**
      * Register hooks
      */
     private function define_hooks() {
+
+        // Public hooks
+        add_filter('single_template', [$this->public, 'filter_single_template']);
+        add_filter('archive_template', [$this->public, 'filter_archive_template']);
+        add_filter('template_include', [$this->public, 'filter_archive_template'], 99);
+        add_action('wp_head', [$this->public, 'render_article_head_styles'], 5);
+        add_action('wp_head', [$this->public, 'render_highwire_tags']);
 
         // File uploads
         $file_handler = new GFJ_File_Handler();
@@ -77,6 +96,9 @@ class GFJ {
         // Metabox saving
         $metabox_handler = new GFJ_Metabox_Handler();
         add_action('save_post_gfj_manuscript', [$metabox_handler, 'save_manuscript_meta'], 10, 2);
+
+        // Publisher Handler
+        $this->publisher_handler->register_handlers();
 
         // Query filters for access control
         $query_filters = new GFJ_Query_Filters();

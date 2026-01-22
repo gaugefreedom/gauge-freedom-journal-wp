@@ -38,6 +38,7 @@ if (!current_user_can('submit_manuscripts')) {
             <h3>1. Article Type</h3>
             <select name="article_type" required>
                 <option value="">-- Select Type --</option>
+                <option value="editorial">Editorial</option>
                 <option value="research">Research Article (6-12k words)</option>
                 <option value="short">Short Communication (2-4k words)</option>
                 <option value="protocol">Registered Protocol</option>
@@ -88,6 +89,10 @@ if (!current_user_can('submit_manuscripts')) {
             <label for="car_file">CAR File (JSON)</label>
             <input type="file" name="car_file" id="car_file" accept=".json,.car">
             <p class="description">Content-Addressable Receipt for computational reproducibility</p>
+
+            <label for="artifacts_file">Artifacts Bundle (ZIP)</label>
+            <input type="file" name="artifacts_file" id="artifacts_file" accept=".zip">
+            <p class="description">Optional: Additional logs, datasets, or Docker containers (Max 100MB)</p>
         </div>
         
         <!-- Repositories -->

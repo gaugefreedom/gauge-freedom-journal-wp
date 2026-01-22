@@ -99,6 +99,7 @@ class GFJ_Ajax_Handler {
             'full_file' => '_gfj_full_file',
             'latex_sources' => '_gfj_latex_file',
             'car_file' => '_gfj_car_file',
+            'artifacts_file' => '_gfj_artifacts_file',
         ];
 
         $uploaded_files = [];
@@ -803,7 +804,8 @@ class GFJ_Ajax_Handler {
             'blinded' => '_gfj_blinded_file',
             'full' => '_gfj_full_file',
             'latex' => '_gfj_latex_file',
-            'car' => '_gfj_car_file'
+            'car' => '_gfj_car_file',
+            'artifacts' => '_gfj_artifacts_file',
         ];
 
         foreach ($file_map as $key => $meta_key) {
@@ -971,6 +973,7 @@ class GFJ_Ajax_Handler {
             'full' => get_post_meta($manuscript_id, '_gfj_full_file', true),
             'latex' => get_post_meta($manuscript_id, '_gfj_latex_file', true),
             'car' => get_post_meta($manuscript_id, '_gfj_car_file', true),
+            'artifacts' => get_post_meta($manuscript_id, '_gfj_artifacts_file', true),
         ];
 
         // Handle file uploads
@@ -984,6 +987,7 @@ class GFJ_Ajax_Handler {
             'full_file' => '_gfj_full_file',
             'latex_sources' => '_gfj_latex_file',
             'car_file' => '_gfj_car_file',
+            'artifacts_file' => '_gfj_artifacts_file',
         ];
 
         $new_files = [];

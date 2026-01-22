@@ -43,6 +43,136 @@ class GFJ_File_Handler {
      */
     public function register_handlers() {
         add_filter('wp_handle_upload_prefilter', [$this, 'validate_upload']);
+        add_action('init', [$this, 'handle_secure_download']);
+        add_action('init', [$this, 'install_security_files']);
+    }
+
+    /**
+     * Create secure directory and protection files
+     */
+    public function install_security_files() {
+        $upload_dir = wp_upload_dir();
+        $secure_dir = $upload_dir['basedir'] . '/gfj-secure';
+
+        if (!file_exists($secure_dir)) {
+            wp_mkdir_p($secure_dir);
+        }
+
+        // .htaccess for Apache
+        $htaccess = $secure_dir . '/.htaccess';
+        if (!file_exists($htaccess)) {
+            file_put_contents($htaccess, "Order Deny,Allow\nDeny from all");
+        }
+
+        // index.html for empty directory listing protection (fallback)
+        $index = $secure_dir . '/index.html';
+        if (!file_exists($index)) {
+            file_put_contents($index, '');
+        }
+    }
+
+    /**
+     * Filter upload directory to use secure folder
+     */
+    public function gfj_upload_filter($uploads) {
+        $uploads['subdir'] = '/gfj-secure' . $uploads['subdir'];
+        $uploads['path'] = $uploads['basedir'] . $uploads['subdir'];
+        $uploads['url'] = $uploads['baseurl'] . $uploads['subdir'];
+        return $uploads;
+    }
+
+    /**
+     * Get a secure download URL for an attachment
+     */
+    public static function get_download_url($attachment_id) {
+        return add_query_arg([
+            'gfj_download' => $attachment_id,
+            'nonce' => wp_create_nonce('gfj_download_' . $attachment_id)
+        ], home_url('/'));
+    }
+
+    /**
+     * Handle secure file download
+     */
+    public function handle_secure_download() {
+        if (!isset($_GET['gfj_download'])) {
+            return;
+        }
+
+        $attachment_id = intval($_GET['gfj_download']);
+        if (!$attachment_id) {
+            wp_die('Invalid file ID.');
+        }
+
+        // Verify nonce if not a public article
+        // We'll check the parent post type to determine if we need strict nonce/login checks
+        // But for consistency, let's require nonce for the link we generated
+        if (!isset($_GET['nonce']) || !wp_verify_nonce($_GET['nonce'], 'gfj_download_' . $attachment_id)) {
+             wp_die('Security check failed (Expired Link). Please refresh the page.');
+        }
+
+        $file_path = get_attached_file($attachment_id);
+        if (!$file_path || !file_exists($file_path)) {
+            wp_die('File not found.');
+        }
+
+        // Access Control
+        $parent_id = wp_get_post_parent_id($attachment_id);
+        $parent_type = get_post_type($parent_id);
+
+        $allowed = false;
+
+        if ($parent_type === 'gfj_article') {
+            // Articles are public if published
+            if (get_post_status($parent_id) === 'publish') {
+                $allowed = true;
+            } else {
+                // Draft articles visible to editors
+                $allowed = current_user_can('edit_post', $parent_id);
+            }
+        } elseif ($parent_type === 'gfj_manuscript') {
+            // Private Manuscripts
+            $user_id = get_current_user_id();
+            if ($user_id) {
+                // We re-use the meta key logic to verify it's a GFJ file
+                $meta_key = $this->get_attachment_meta_key($attachment_id, $parent_id);
+                if ($meta_key) {
+                    $allowed = $this->check_file_access_permission($user_id, $parent_id, $meta_key);
+                }
+            }
+        } else {
+            // Fallback for attachments not yet attached or attached to other things
+            // If the user is the uploader (author), allow
+            $attachment_post = get_post($attachment_id);
+            if ($attachment_post && is_user_logged_in() && $attachment_post->post_author == get_current_user_id()) {
+                $allowed = true;
+            }
+        }
+
+        if (!$allowed) {
+            wp_die('You do not have permission to access this file.', 'Access Denied', ['response' => 403]);
+        }
+
+        // Serve File
+        $mime_type = get_post_mime_type($attachment_id);
+        $filename = basename($file_path);
+
+        // Clear output buffer
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        header('Content-Description: File Transfer');
+        header('Content-Type: ' . $mime_type);
+        header('Content-Disposition: inline; filename="' . $filename . '"');
+        header('Content-Transfer-Encoding: binary');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($file_path));
+
+        readfile($file_path);
+        exit;
     }
 
     /**
@@ -131,8 +261,14 @@ class GFJ_File_Handler {
             'mimes' => $this->allowed_types,
         ];
 
+        // ADD FILTER: Use secure directory
+        add_filter('upload_dir', [$this, 'gfj_upload_filter']);
+
         // Handle upload
         $uploaded_file = wp_handle_upload($_FILES[$file_field], $upload_overrides);
+
+        // REMOVE FILTER: Restore default directory
+        remove_filter('upload_dir', [$this, 'gfj_upload_filter']);
 
         if (isset($uploaded_file['error'])) {
             return new WP_Error('upload_failed', $uploaded_file['error']);
@@ -232,7 +368,8 @@ class GFJ_File_Handler {
             '_gfj_blinded_file',
             '_gfj_full_file',
             '_gfj_latex_file',
-            '_gfj_car_file'
+            '_gfj_car_file',
+            '_gfj_artifacts_file'
         ];
 
         foreach ($meta_keys as $key) {
@@ -278,7 +415,7 @@ class GFJ_File_Handler {
         }
 
         // LaTeX and CAR files (same rules as full manuscript)
-        if (in_array($meta_key, ['_gfj_latex_file', '_gfj_car_file'])) {
+        if (in_array($meta_key, ['_gfj_latex_file', '_gfj_car_file', '_gfj_artifacts_file'])) {
             return GFJ_Permissions::can_view_full_manuscript($user_id, $manuscript_id);
         }
 
@@ -297,7 +434,8 @@ class GFJ_File_Handler {
             '_gfj_blinded_file',
             '_gfj_full_file',
             '_gfj_latex_file',
-            '_gfj_car_file'
+            '_gfj_car_file',
+            '_gfj_artifacts_file'
         ];
 
         foreach ($file_keys as $key) {
