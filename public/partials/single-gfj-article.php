@@ -36,6 +36,7 @@ while ( have_posts() ) : the_post();
     $key_findings = get_post_meta($article_id, '_gfj_key_findings', true);
     $ai_disclosure = get_post_meta($article_id, '_gfj_ai_disclosure', true);
     $pub_date = get_post_meta($article_id, '_gfj_publication_date', true);
+    $article_type_label = GFJ_Article_Post_Type::get_article_type_label($article_id);
 
     // Format date
     $pub_date_display = $pub_date ? date_i18n(get_option('date_format'), strtotime($pub_date)) : '';
@@ -52,7 +53,7 @@ while ( have_posts() ) : the_post();
                 <!-- Header -->
                 <header class="gfj-article-header">
                     <div class="gfj-article-meta-top">
-                        <span class="gfj-article-type"><?php echo get_the_term_list($article_id, 'gfj_topic', '', ', '); ?></span>
+                        <span class="gfj-article-type"><?php echo esc_html($article_type_label); ?></span>
                         <?php if ($pub_date_display): ?>
                             <span class="gfj-pub-date">Published: <?php echo esc_html($pub_date_display); ?></span>
                         <?php endif; ?>

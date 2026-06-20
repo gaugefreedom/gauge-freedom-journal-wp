@@ -459,6 +459,10 @@ gauge-freedom-journal-wp/
 └── README.md                         # This file
 ```
 
+### Public Article Type Labels
+
+Published `gfj_article` posts use `_gfj_article_type` for the public article-type label. Missing or invalid values fall back to `Research Article`; `gfj_topic` remains a subject/topic taxonomy.
+
 ---
 
 ## 📝 License

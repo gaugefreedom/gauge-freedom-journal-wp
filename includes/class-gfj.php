@@ -16,6 +16,7 @@ class GFJ {
     protected $version;
     protected $public;
     protected $publisher_handler;
+    protected $metrics;
 
     public function __construct() {
         $this->version = GFJ_VERSION;
@@ -36,6 +37,7 @@ class GFJ {
         require_once GFJ_PLUGIN_DIR . 'includes/post-types/class-manuscript.php';
         require_once GFJ_PLUGIN_DIR . 'includes/post-types/class-gfj-article.php';
         require_once GFJ_PLUGIN_DIR . 'includes/class-gfj-login.php';
+        require_once GFJ_PLUGIN_DIR . 'includes/class-gfj-metrics.php';
 
         // Handlers
         require_once GFJ_PLUGIN_DIR . 'includes/handlers/class-file-handler.php';
@@ -59,6 +61,9 @@ class GFJ {
 
         // Initialize publisher handler
         $this->publisher_handler = new GFJ_Publisher_Handler();
+
+        // Initialize metrics handler
+        $this->metrics = new GFJ_Metrics();
     }
 
     /**
@@ -201,6 +206,24 @@ class GFJ {
             'nonce' => wp_create_nonce('gfj_public'),
             'dashboardUrl' => home_url('/dashboard/'),
         ]);
+
+        wp_localize_script('gfj-public', 'gfj_vars', [
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'metrics_nonce' => wp_create_nonce('gfj_metrics_nonce'),
+            'post_id' => is_singular('gfj_article') ? get_queried_object_id() : 0,
+            'is_article' => is_singular('gfj_article') ? '1' : '0',
+        ]);
+
+        if (is_singular('gfj_article')) {
+            wp_enqueue_script(
+                'gfj-mathjax',
+                'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_CHTML',
+                [],
+                null,
+                false
+            );
+            wp_script_add_data('gfj-mathjax', 'defer', true);
+        }
     }
 
     /**

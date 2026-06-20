@@ -824,6 +824,8 @@ class GFJ_Ajax_Handler {
         $status_message = '';
         $next_steps = '';
         $editor_feedback = '';
+        $reviewer_feedback = [];
+        $reviewer_feedback_rounds = [];
 
         switch ($stage['slug']) {
             case 'triage':
@@ -892,6 +894,65 @@ class GFJ_Ajax_Handler {
         }
 
         // Prepare response
+        if (in_array($stage['slug'], ['revision', 'minor_revision', 'major_revision', 'rejected', 'accepted', 'published'], true)) {
+            global $wpdb;
+            $reviews = $wpdb->get_results(
+                $wpdb->prepare(
+                    "SELECT comments_to_author, recommendation, submitted_at
+                     FROM {$wpdb->prefix}gfj_reviews
+                     WHERE manuscript_id = %d AND status = 'completed'
+                     ORDER BY submitted_at ASC",
+                    $manuscript_id
+                )
+            );
+
+            $revision_history = get_post_meta($manuscript_id, '_gfj_revision_history', true);
+            $cutoffs = [];
+            if (is_array($revision_history)) {
+                foreach ($revision_history as $entry) {
+                    if (!empty($entry['uploaded_at'])) {
+                        $cutoffs[] = strtotime($entry['uploaded_at']);
+                    }
+                }
+            }
+            sort($cutoffs);
+
+            foreach ($reviews as $review) {
+                if (empty($review->comments_to_author) && empty($review->recommendation)) {
+                    continue;
+                }
+                $submitted_ts = $review->submitted_at ? strtotime($review->submitted_at) : false;
+                $round = 1;
+                if ($submitted_ts) {
+                    foreach ($cutoffs as $cutoff) {
+                        if ($submitted_ts > $cutoff) {
+                            $round++;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+                $review_data = [
+                    'comments_to_author' => $review->comments_to_author,
+                    'recommendation' => $review->recommendation,
+                    'submitted_at' => $review->submitted_at ? date('F j, Y', strtotime($review->submitted_at)) : '',
+                ];
+
+                $reviewer_feedback[] = $review_data;
+
+                if (!isset($reviewer_feedback_rounds[$round])) {
+                    $reviewer_feedback_rounds[$round] = [
+                        'round' => $round,
+                        'date' => $review_data['submitted_at'],
+                        'reviews' => [],
+                    ];
+                }
+
+                $reviewer_feedback_rounds[$round]['reviews'][] = $review_data;
+            }
+        }
+
         $response = [
             'manuscript_id' => $manuscript_id,
             'title' => $manuscript->post_title,
@@ -906,7 +967,9 @@ class GFJ_Ajax_Handler {
             'files' => $files,
             'status_message' => $status_message,
             'next_steps' => $next_steps,
-            'editor_feedback' => $editor_feedback
+            'editor_feedback' => $editor_feedback,
+            'reviewer_feedback' => $reviewer_feedback,
+            'reviewer_feedback_rounds' => array_values($reviewer_feedback_rounds)
         ];
 
         wp_send_json_success($response);

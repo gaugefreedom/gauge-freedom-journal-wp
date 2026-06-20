@@ -113,6 +113,16 @@ class GFJ_Publisher_Handler {
         // Generate a temporary DOI or placeholder if needed
         update_post_meta($article_id, '_gfj_doi', '10.XXXX/gfj.' . date('Y') . '.' . $article_id);
 
+        $article_type = $this->get_article_type_from_latex_attachment($latex_file_id);
+        if (!$article_type) {
+            $article_type = $this->get_article_type_from_manuscript($manuscript_id);
+        }
+        update_post_meta(
+            $article_id,
+            GFJ_Article_Post_Type::ARTICLE_TYPE_META_KEY,
+            GFJ_Article_Post_Type::normalize_article_type($article_type)
+        );
+
         // Author Display Name
         $author_data = get_userdata($manuscript->post_author);
         if ($author_data) {
@@ -125,5 +135,68 @@ class GFJ_Publisher_Handler {
         // 6. Redirect to new Article Edit Screen
         wp_redirect(get_edit_post_link($article_id, 'raw'));
         exit;
+    }
+
+    private function get_article_type_from_manuscript($manuscript_id) {
+        $terms = wp_get_post_terms($manuscript_id, 'manuscript_type');
+        if (!empty($terms) && !is_wp_error($terms)) {
+            return $terms[0]->slug ? $terms[0]->slug : $terms[0]->name;
+        }
+
+        return 'RESEARCH';
+    }
+
+    private function get_article_type_from_latex_attachment($attachment_id) {
+        if (!$attachment_id) {
+            return '';
+        }
+
+        $path = get_attached_file($attachment_id);
+        if (!$path || !file_exists($path)) {
+            return '';
+        }
+
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        if ($extension === 'tex') {
+            return $this->parse_articlecategory(file_get_contents($path));
+        }
+
+        if ($extension !== 'zip' || !class_exists('ZipArchive')) {
+            return '';
+        }
+
+        $zip = new ZipArchive();
+        if ($zip->open($path) !== true) {
+            return '';
+        }
+
+        $article_type = '';
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if (strtolower(pathinfo($name, PATHINFO_EXTENSION)) !== 'tex') {
+                continue;
+            }
+
+            $contents = $zip->getFromIndex($i);
+            if ($contents === false) {
+                continue;
+            }
+
+            $article_type = $this->parse_articlecategory($contents);
+            if ($article_type) {
+                break;
+            }
+        }
+
+        $zip->close();
+        return $article_type;
+    }
+
+    private function parse_articlecategory($contents) {
+        if (preg_match('/\\\\articlecategory\s*\{([^}]*)\}/i', (string) $contents, $matches)) {
+            return $matches[1];
+        }
+
+        return '';
     }
 }

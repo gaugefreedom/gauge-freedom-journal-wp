@@ -77,11 +77,11 @@ class GFJ_Manuscript_Post_Type {
         $article_types = [
             'editorial'       => 'Editorial',
             'research'        => 'Research Article',
-            'short'           => 'Short Communication',
-            'protocol'        => 'Registered Protocol',
-            'perspective'     => 'Perspective/Tutorial',
-            'reproducibility' => 'Reproducibility Report',
-            'dataset'         => 'Dataset/Software Note',
+            'technical-note'  => 'Technical Note',
+            'review'          => 'Review',
+            'short-note'      => 'Short Communications',
+            'protocol'        => 'Registered Protocols',
+            'report'          => 'Reproducibility Reports',
         ];
         
         foreach ($article_types as $slug => $name) {

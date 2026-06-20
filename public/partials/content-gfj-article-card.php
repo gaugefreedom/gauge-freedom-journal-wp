@@ -14,10 +14,8 @@ if (empty($pdf_url) && $pdf_attachment_id) {
     $pdf_url = GFJ_File_Handler::get_download_url($pdf_attachment_id);
 }
 
-$topics = get_the_terms($post_id, 'gfj_topic');
-$topic_name = !empty($topics) && !is_wp_error($topics) ? $topics[0]->name : 'Article';
 $card_type_override = isset($gfj_card_type_override) ? $gfj_card_type_override : '';
-$card_type = $card_type_override ? $card_type_override : $topic_name;
+$card_type = $card_type_override ? $card_type_override : GFJ_Article_Post_Type::get_article_type_label($post_id);
 $hide_actions = !empty($gfj_card_hide_actions);
 
 $display_date = $pub_date ? date_i18n('M Y', strtotime($pub_date)) : get_the_date('M Y');

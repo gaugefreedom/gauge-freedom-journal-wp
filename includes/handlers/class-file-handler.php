@@ -43,7 +43,7 @@ class GFJ_File_Handler {
      */
     public function register_handlers() {
         add_filter('wp_handle_upload_prefilter', [$this, 'validate_upload']);
-        add_action('init', [$this, 'handle_secure_download']);
+        add_action('template_redirect', [$this, 'handle_secure_download']);
         add_action('init', [$this, 'install_security_files']);
     }
 
@@ -104,11 +104,23 @@ class GFJ_File_Handler {
             wp_die('Invalid file ID.');
         }
 
-        // Verify nonce if not a public article
-        // We'll check the parent post type to determine if we need strict nonce/login checks
-        // But for consistency, let's require nonce for the link we generated
-        if (!isset($_GET['nonce']) || !wp_verify_nonce($_GET['nonce'], 'gfj_download_' . $attachment_id)) {
-             wp_die('Security check failed (Expired Link). Please refresh the page.');
+        // Access Control
+        $parent_id = wp_get_post_parent_id($attachment_id);
+        $parent_type = get_post_type($parent_id);
+        $is_published_article_pdf = false;
+
+        if ($parent_type === 'gfj_article' && get_post_status($parent_id) === 'publish') {
+            $pdf_attachment_id = get_post_meta($parent_id, '_gfj_pdf_attachment_id', true);
+            if ($pdf_attachment_id && intval($pdf_attachment_id) === $attachment_id) {
+                $is_published_article_pdf = true;
+            }
+        }
+
+        // Verify nonce unless it's the published article PDF
+        if (!$is_published_article_pdf) {
+            if (!isset($_GET['nonce']) || !wp_verify_nonce($_GET['nonce'], 'gfj_download_' . $attachment_id)) {
+                wp_die('Security check failed (Expired Link). Please refresh the page.');
+            }
         }
 
         $file_path = get_attached_file($attachment_id);
@@ -116,21 +128,20 @@ class GFJ_File_Handler {
             wp_die('File not found.');
         }
 
-        // Access Control
-        $parent_id = wp_get_post_parent_id($attachment_id);
-        $parent_type = get_post_type($parent_id);
-
         $allowed = false;
 
-        if ($parent_type === 'gfj_article') {
-            // Articles are public if published
-            if (get_post_status($parent_id) === 'publish') {
-                $allowed = true;
-            } else {
-                // Draft articles visible to editors
-                $allowed = current_user_can('edit_post', $parent_id);
+        if ($is_published_article_pdf) {
+            $allowed = true;
+        } elseif ($parent_type === 'gfj_article') {
+            if (!is_user_logged_in()) {
+                wp_die('Unauthorized access.', 'Access Denied', ['response' => 403]);
             }
+            // Draft or non-PDF article files visible to editors/authors
+            $allowed = current_user_can('edit_post', $parent_id);
         } elseif ($parent_type === 'gfj_manuscript') {
+            if (!is_user_logged_in()) {
+                wp_die('Unauthorized access.', 'Access Denied', ['response' => 403]);
+            }
             // Private Manuscripts
             $user_id = get_current_user_id();
             if ($user_id) {
@@ -164,8 +175,9 @@ class GFJ_File_Handler {
 
         header('Content-Description: File Transfer');
         header('Content-Type: ' . $mime_type);
-        header('Content-Disposition: inline; filename="' . $filename . '"');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Content-Transfer-Encoding: binary');
+        header('X-Content-Type-Options: nosniff');
         header('Expires: 0');
         header('Cache-Control: must-revalidate');
         header('Pragma: public');
@@ -182,6 +194,29 @@ class GFJ_File_Handler {
         // Check if this is a GFJ upload
         if (!isset($_POST['gfj_upload']) || !wp_verify_nonce($_POST['gfj_upload_nonce'], 'gfj_file_upload')) {
             return $file;
+        }
+
+        $filename = isset($file['name']) ? $file['name'] : '';
+        $parts = explode('.', $filename);
+        if (count($parts) > 2) {
+            $extensions = array_slice($parts, 1);
+            $intermediate = array_slice($extensions, 0, -1);
+            $blocked = [
+                'php', 'php3', 'php4', 'php5', 'php7', 'php8', 'phtml', 'pht', 'phar',
+                'exe', 'dll', 'bat', 'cmd', 'com', 'msi', 'pif',
+                'sh', 'bash', 'zsh', 'csh', 'tcsh', 'ksh',
+                'pl', 'py', 'rb', 'cgi',
+                'js', 'jse', 'vbs', 'vbe', 'wsf', 'wsh', 'ps1', 'ps2',
+                'asp', 'aspx', 'jsp', 'jar', 'war', 'class',
+                'html', 'htm', 'svg', 'shtml', 'xhtml', 'htaccess'
+            ];
+
+            foreach ($intermediate as $segment) {
+                if (in_array(strtolower($segment), $blocked, true)) {
+                    $file['error'] = 'File name contains a blocked extension.';
+                    return $file;
+                }
+            }
         }
 
         $file_ext = pathinfo($file['name'], PATHINFO_EXTENSION);
@@ -205,8 +240,8 @@ class GFJ_File_Handler {
         $real_mime = finfo_file($finfo, $file['tmp_name']);
         finfo_close($finfo);
 
-        // For PDF and ZIP, strict MIME validation
-        if (in_array($file_ext, ['pdf', 'zip']) && $real_mime !== $this->allowed_types[$file_ext]) {
+        // Strict MIME validation for allowed types
+        if (in_array($file_ext, ['pdf', 'zip', 'json', 'car'], true) && $real_mime !== $this->allowed_types[$file_ext]) {
             $file['error'] = 'File MIME type does not match extension. Possible file spoofing detected.';
             return $file;
         }

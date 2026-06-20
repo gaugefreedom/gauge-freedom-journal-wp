@@ -626,6 +626,49 @@
             html += '</div>';
         }
 
+        // Reviewer Feedback (if any)
+        if (data.reviewer_feedback_rounds && data.reviewer_feedback_rounds.length) {
+            html += '<div class="detail-section feedback-section">';
+            html += '<h3>Reviewer Feedback</h3>';
+            data.reviewer_feedback_rounds.forEach(function(round) {
+                const roundLabel = 'Round ' + round.round + (round.date ? ' (' + escapeHtml(round.date) + ')' : '');
+                html += '<div style="font-weight:600;margin:12px 0 8px;">' + roundLabel + '</div>';
+                (round.reviews || []).forEach(function(review) {
+                    html += '<div class="feedback-content" style="margin-bottom:12px;">';
+                    if (review.recommendation) {
+                        html += '<div style="font-size:12px;color:#6b7280;margin-bottom:6px;">' + escapeHtml(review.recommendation.replace(/_/g, ' ')) + '</div>';
+                    }
+                    if (review.comments_to_author) {
+                        html += '<div>' + escapeHtml(review.comments_to_author) + '</div>';
+                    } else {
+                        html += '<div><em>No comments provided.</em></div>';
+                    }
+                    html += '</div>';
+                });
+            });
+            html += '</div>';
+        } else if (data.reviewer_feedback && data.reviewer_feedback.length) {
+            html += '<div class="detail-section feedback-section">';
+            html += '<h3>Reviewer Feedback</h3>';
+            data.reviewer_feedback.forEach(function(review, index) {
+                html += '<div class="feedback-content" style="margin-bottom:12px;">';
+                if (review.submitted_at) {
+                    html += '<div style="font-size:12px;color:#6b7280;margin-bottom:6px;">Review ' + (index + 1) + ' · ' + escapeHtml(review.submitted_at);
+                    if (review.recommendation) {
+                        html += ' · ' + escapeHtml(review.recommendation.replace(/_/g, ' '));
+                    }
+                    html += '</div>';
+                }
+                if (review.comments_to_author) {
+                    html += '<div>' + escapeHtml(review.comments_to_author) + '</div>';
+                } else {
+                    html += '<div><em>No comments provided.</em></div>';
+                }
+                html += '</div>';
+            });
+            html += '</div>';
+        }
+
         // Next Steps
         if (data.next_steps) {
             html += '<div class="detail-section next-steps-section">';
@@ -870,6 +913,82 @@
     }
 
     /**
+     * Article metrics tracking (views and downloads).
+     */
+    function initArticleMetrics() {
+        if (typeof gfj_vars === 'undefined' || !gfj_vars || !gfj_vars.metrics_nonce) {
+            return;
+        }
+
+        const postId = parseInt(gfj_vars.post_id, 10);
+        if (!postId) {
+            return;
+        }
+
+        function setCookie(name, value, hours) {
+            let expires = '';
+            if (hours) {
+                const date = new Date();
+                date.setTime(date.getTime() + (hours * 60 * 60 * 1000));
+                expires = '; expires=' + date.toUTCString();
+            }
+            document.cookie = name + '=' + (value || '') + expires + '; path=/';
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + '=';
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') {
+                    c = c.substring(1, c.length);
+                }
+                if (c.indexOf(nameEQ) === 0) {
+                    return c.substring(nameEQ.length, c.length);
+                }
+            }
+            return null;
+        }
+
+        function trackGfjMetric(metricType) {
+            $.post(gfj_vars.ajax_url, {
+                action: 'gfj_track_metric',
+                nonce: gfj_vars.metrics_nonce,
+                post_id: postId,
+                type: metricType
+            });
+        }
+
+        if (gfj_vars.is_article === '1') {
+            const viewCookie = 'gfj_viewed_' + postId;
+            if (!getCookie(viewCookie)) {
+                setTimeout(function() {
+                    trackGfjMetric('views');
+                    setCookie(viewCookie, '1', 1);
+                }, 2000);
+            }
+
+            $(document).on('click', '.gfj-btn-pdf, .gfj-btn-artifacts, .gfj-btn-latex', function() {
+                let type = 'pdf';
+                const $btn = $(this);
+
+                if ($btn.hasClass('gfj-btn-artifacts')) {
+                    type = 'bundle';
+                }
+                if ($btn.hasClass('gfj-btn-latex')) {
+                    type = 'latex';
+                }
+
+                const dlCookie = 'gfj_dl_' + type + '_' + postId;
+                if (!getCookie(dlCookie)) {
+                    trackGfjMetric(type);
+                    setCookie(dlCookie, '1', 0.02);
+                }
+            });
+        }
+    }
+
+    /**
      * Initialize on document ready
      */
     $(document).ready(function() {
@@ -879,6 +998,7 @@
         initFilePreview();
         initViewManuscriptModal();
         initRevisionUpload();
+        initArticleMetrics();
 
         // Clear error styling on input
         $(document).on('input change', '.error', function() {

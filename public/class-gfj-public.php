@@ -46,6 +46,13 @@ class GFJ_Public {
             false
         );
 
+        wp_localize_script($this->plugin_name, 'gfj_vars', [
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'metrics_nonce' => wp_create_nonce('gfj_metrics_nonce'),
+            'post_id' => is_singular('gfj_article') ? get_queried_object_id() : 0,
+            'is_article' => is_singular('gfj_article') ? '1' : '0',
+        ]);
+
         wp_enqueue_script(
             'gfj-mathjax',
             'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_CHTML',
@@ -156,7 +163,6 @@ class GFJ_Public {
 
             <div class="gfj-article-list">
                 <?php while ($query->have_posts()) : $query->the_post(); ?>
-                    <?php $gfj_card_type_override = 'Research'; ?>
                     <?php $gfj_card_hide_actions = true; ?>
                     <?php include $card_template; ?>
                 <?php endwhile; ?>
@@ -185,9 +191,27 @@ class GFJ_Public {
         $pdf_url = get_post_meta($post_id, '_gfj_pdf_url', true);
         $artifacts_url = get_post_meta($post_id, '_gfj_artifacts_url', true);
         $latex_url = get_post_meta($post_id, '_gfj_latex_url', true);
+        $pdf_attachment_id = get_post_meta($post_id, '_gfj_pdf_attachment_id', true);
+        $latex_attachment_id = get_post_meta($post_id, '_gfj_latex_attachment_id', true);
+        $artifacts_attachment_id = get_post_meta($post_id, '_gfj_artifacts_attachment_id', true);
+        if (empty($pdf_url) && $pdf_attachment_id) {
+            $pdf_url = GFJ_File_Handler::get_download_url($pdf_attachment_id);
+        }
+
+        if (empty($latex_url) && $latex_attachment_id) {
+            $latex_url = GFJ_File_Handler::get_download_url($latex_attachment_id);
+        }
+
+        if (empty($artifacts_url) && $artifacts_attachment_id) {
+            $artifacts_url = GFJ_File_Handler::get_download_url($artifacts_attachment_id);
+        }
+
         $significance = get_post_meta($post_id, '_gfj_significance', true);
         $key_findings = get_post_meta($post_id, '_gfj_key_findings', true);
         $ai_disclosure = get_post_meta($post_id, '_gfj_ai_disclosure', true);
+        $citation_override = get_post_meta($post_id, '_gfj_citation_override', true);
+        $bibtex_override = get_post_meta($post_id, '_gfj_bibtex_override', true);
+        $article_type_label = GFJ_Article_Post_Type::get_article_type_label($post_id);
         
         // Prepare Author String (or use specific meta if you have it)
         $authors = get_post_meta($post_id, '_gfj_author_display', true);
@@ -203,7 +227,7 @@ class GFJ_Public {
             
             <header class="gfj-article-header">
                 <div class="gfj-article-meta-top" style="display:flex; align-items:center; flex-wrap:wrap; gap:10px;">
-                    <span class="gfj-article-type">Research Article</span>
+                    <span class="gfj-article-type"><?php echo esc_html($article_type_label); ?></span>
 
                     <?php if ($doi): ?>
                         <span class="gfj-meta-separator">•</span>
@@ -255,11 +279,13 @@ class GFJ_Public {
                         </section>
                     <?php endif; ?>
 
-                    <section class="gfj-article-content">
-                        <h3>Full Text</h3>
-                        <hr style="margin: 0 0 20px 0; border-color: #e5e7eb;">
-                        <?php echo $content; ?>
-                    </section>
+                    <?php if (trim(wp_strip_all_tags($content)) !== ''): ?>
+                        <section class="gfj-article-content">
+                            <h3>Full Text</h3>
+                            <hr style="margin: 0 0 20px 0; border-color: #e5e7eb;">
+                            <?php echo $content; ?>
+                        </section>
+                    <?php endif; ?>
 
                     <?php if ($ai_disclosure): ?>
                         <div class="gfj-article-ai-disclosure">
@@ -296,21 +322,31 @@ class GFJ_Public {
                         <h3>Cite this Article</h3>
                         <div class="gfj-citation-content">
                             <?php 
-                            $citation = $authors . " (" . get_the_date('Y') . "). " . get_the_title() . ". Gauge Freedom Journal.";
-                            echo esc_html($citation); 
+                            if ($citation_override) {
+                                echo wp_kses_post($citation_override);
+                            } else {
+                                $citation = $authors . " (" . get_the_date('Y') . "). " . get_the_title() . ". Gauge Freedom Journal.";
+                                echo esc_html($citation);
+                            }
                             ?>
                         </div>
                         <div class="gfj-toggle-bibtex">
                             <a href="#" onclick="jQuery('.gfj-bibtex-code').slideToggle(); return false;">Show BibTeX</a>
                         </div>
                         <div class="gfj-bibtex-code" style="display:none;">
-                            <pre>@article{gfj<?php echo get_the_ID(); ?>,
+                            <pre><?php
+                            if ($bibtex_override) {
+                                echo esc_html($bibtex_override);
+                            } else {
+                            ?>@article{gfj<?php echo get_the_ID(); ?>,
                             title={<?php echo get_the_title(); ?>},
                             author={<?php echo $authors; ?>},
                             journal={Gauge Freedom Journal},
                             year={<?php echo get_the_date('Y'); ?>},
                             doi={<?php echo esc_html($doi); ?>}
-                            }</pre>
+                            }<?php
+                            }
+                            ?></pre>
                         </div>
                     </div>
 

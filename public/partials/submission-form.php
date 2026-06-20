@@ -40,11 +40,11 @@ if (!current_user_can('submit_manuscripts')) {
                 <option value="">-- Select Type --</option>
                 <option value="editorial">Editorial</option>
                 <option value="research">Research Article (6-12k words)</option>
-                <option value="short">Short Communication (2-4k words)</option>
-                <option value="protocol">Registered Protocol</option>
-                <option value="perspective">Perspective/Tutorial</option>
-                <option value="reproducibility">Reproducibility Report</option>
-                <option value="dataset">Dataset/Software Note</option>
+                <option value="technical-note">Technical Note</option>
+                <option value="review">Review</option>
+                <option value="short-note">Short Communications (2-4k words)</option>
+                <option value="protocol">Registered Protocols</option>
+                <option value="report">Reproducibility Reports</option>
             </select>
         </div>
         

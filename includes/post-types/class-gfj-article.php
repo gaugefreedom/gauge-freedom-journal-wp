@@ -2,10 +2,56 @@
 
 class GFJ_Article_Post_Type {
 
+    const ARTICLE_TYPE_META_KEY = '_gfj_article_type';
+
     public function __construct() {
         add_action('init', [$this, 'register_post_type']);
         add_action('init', [$this, 'register_meta_boxes']);
         add_action('save_post_gfj_article', [$this, 'save_article_meta'], 10, 2);
+    }
+
+    public static function get_article_type_options() {
+        return [
+            'EDITORIAL'       => 'Editorial',
+            'RESEARCH'        => 'Research Article',
+            'TECHNICAL NOTE'  => 'Technical Note',
+            'REVIEW'          => 'Review',
+            'SHORT NOTE'      => 'Short Communications',
+            'PROTOCOL'        => 'Registered Protocols',
+            'REPORT'          => 'Reproducibility Reports',
+        ];
+    }
+
+    public static function normalize_article_type($value) {
+        $value = strtoupper(trim((string) $value));
+        $value = preg_replace('/[_-]+/', ' ', $value);
+        $value = preg_replace('/\s+/', ' ', $value);
+
+        $aliases = [
+            'SHORT'                    => 'SHORT NOTE',
+            'SHORT COMMUNICATION'      => 'SHORT NOTE',
+            'SHORT COMMUNICATIONS'     => 'SHORT NOTE',
+            'REGISTERED PROTOCOL'      => 'PROTOCOL',
+            'REGISTERED PROTOCOLS'     => 'PROTOCOL',
+            'REPRODUCIBILITY'          => 'REPORT',
+            'REPRODUCIBILITY REPORT'   => 'REPORT',
+            'REPRODUCIBILITY REPORTS'  => 'REPORT',
+        ];
+
+        if (isset($aliases[$value])) {
+            $value = $aliases[$value];
+        }
+
+        $options = self::get_article_type_options();
+        return array_key_exists($value, $options) ? $value : 'RESEARCH';
+    }
+
+    public static function get_article_type_label($post_id) {
+        $value = get_post_meta($post_id, self::ARTICLE_TYPE_META_KEY, true);
+        $value = self::normalize_article_type($value);
+        $options = self::get_article_type_options();
+
+        return $options[$value];
     }
 
     /**
@@ -124,6 +170,15 @@ class GFJ_Article_Post_Type {
                 'normal',
                 'high'
             );
+
+            add_meta_box(
+                'gfj_article_metrics',
+                'Article Metrics',
+                [$this, 'render_article_metrics_metabox'],
+                'gfj_article',
+                'side',
+                'default'
+            );
         });
     }
 
@@ -145,6 +200,7 @@ class GFJ_Article_Post_Type {
         $ai_disclosure = get_post_meta($post->ID, '_gfj_ai_disclosure', true);
         $publication_date = get_post_meta($post->ID, '_gfj_publication_date', true);
         $source_manuscript_id = get_post_meta($post->ID, '_gfj_source_manuscript_id', true);
+        $article_type = self::normalize_article_type(get_post_meta($post->ID, self::ARTICLE_TYPE_META_KEY, true));
 
         // If key_findings is an array, we might want to display it as a list or handle it.
         // For simplicity in the admin text area, we'll treat it as text (maybe new line separated or HTML)
@@ -161,6 +217,19 @@ class GFJ_Article_Post_Type {
                 <th><label for="gfj_doi">DOI</label></th>
                 <td>
                     <input type="text" name="gfj_doi" id="gfj_doi" value="<?php echo esc_attr($doi); ?>" class="large-text">
+                </td>
+            </tr>
+            <tr>
+                <th><label for="gfj_article_type">Article Type</label></th>
+                <td>
+                    <select name="gfj_article_type" id="gfj_article_type">
+                        <?php foreach (self::get_article_type_options() as $value => $label): ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($article_type, $value); ?>>
+                                <?php echo esc_html($label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p class="description">Controls the public article-type label. Topics are subject classifications.</p>
                 </td>
             </tr>
             <tr>
@@ -248,6 +317,43 @@ class GFJ_Article_Post_Type {
     }
 
     /**
+     * Render read-only metrics for the article.
+     *
+     * @param WP_Post $post The post object.
+     */
+    public function render_article_metrics_metabox($post) {
+        $views = (int) get_post_meta($post->ID, '_gfj_metric_views', true);
+        $pdf = (int) get_post_meta($post->ID, '_gfj_metric_pdf', true);
+        $bundle = (int) get_post_meta($post->ID, '_gfj_metric_bundle', true);
+        $latex = (int) get_post_meta($post->ID, '_gfj_metric_latex', true);
+        $total_downloads = (int) get_post_meta($post->ID, '_gfj_metric_total_downloads', true);
+        ?>
+        <table class="form-table">
+            <tr>
+                <th>Views</th>
+                <td><?php echo esc_html(number_format_i18n($views)); ?></td>
+            </tr>
+            <tr>
+                <th>PDF Downloads</th>
+                <td><?php echo esc_html(number_format_i18n($pdf)); ?></td>
+            </tr>
+            <tr>
+                <th>Bundle Downloads</th>
+                <td><?php echo esc_html(number_format_i18n($bundle)); ?></td>
+            </tr>
+            <tr>
+                <th>LaTeX Downloads</th>
+                <td><?php echo esc_html(number_format_i18n($latex)); ?></td>
+            </tr>
+            <tr>
+                <th>Total Downloads</th>
+                <td><?php echo esc_html(number_format_i18n($total_downloads)); ?></td>
+            </tr>
+        </table>
+        <?php
+    }
+
+    /**
      * Save article metadata
      *
      * @param int $post_id The ID of the post being saved.
@@ -272,6 +378,7 @@ class GFJ_Article_Post_Type {
         // Sanitize and save fields
         $fields = [
             'gfj_doi'                  => 'sanitize_text_field',
+            'gfj_article_type'         => 'gfj_article_type',
             'gfj_author_display'       => 'sanitize_text_field',
             'gfj_pdf_url'              => 'esc_url_raw',
             'gfj_latex_url'            => 'esc_url_raw',
@@ -292,6 +399,8 @@ class GFJ_Article_Post_Type {
                 
                 if ($sanitizer === 'wp_kses_post') {
                     $value = wp_kses_post($value);
+                } elseif ($sanitizer === 'gfj_article_type') {
+                    $value = self::normalize_article_type($value);
                 } elseif (function_exists($sanitizer)) {
                     $value = $sanitizer($value);
                 }
