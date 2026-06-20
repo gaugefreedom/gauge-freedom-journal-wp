@@ -6,7 +6,7 @@ class GFJ_Article_Post_Type {
 
     public function __construct() {
         add_action('init', [$this, 'register_post_type']);
-        add_action('init', [$this, 'register_meta_boxes']);
+        add_action('add_meta_boxes_gfj_article', [$this, 'register_meta_boxes']);
         add_action('save_post_gfj_article', [$this, 'save_article_meta'], 10, 2);
     }
 
@@ -161,25 +161,23 @@ class GFJ_Article_Post_Type {
      * Register meta boxes for article data
      */
     public function register_meta_boxes() {
-        add_action('add_meta_boxes', function() {
-            add_meta_box(
-                'gfj_article_data',
-                'Article Metadata',
-                [$this, 'render_article_data_metabox'],
-                'gfj_article',
-                'normal',
-                'high'
-            );
+        add_meta_box(
+            'gfj_article_data',
+            'Article Metadata',
+            [$this, 'render_article_data_metabox'],
+            'gfj_article',
+            'normal',
+            'high'
+        );
 
-            add_meta_box(
-                'gfj_article_metrics',
-                'Article Metrics',
-                [$this, 'render_article_metrics_metabox'],
-                'gfj_article',
-                'side',
-                'default'
-            );
-        });
+        add_meta_box(
+            'gfj_article_metrics',
+            'Article Metrics',
+            [$this, 'render_article_metrics_metabox'],
+            'gfj_article',
+            'side',
+            'default'
+        );
     }
 
     /**
