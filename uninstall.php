@@ -14,9 +14,12 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 global $wpdb;
 
 /**
- * IMPORTANT: This will DELETE ALL plugin data permanently.
- * Only runs when user explicitly uninstalls the plugin (not on deactivation).
+ * Preserve publication and review data by default when the plugin is deleted.
+ * Define GFJ_ALLOW_DESTRUCTIVE_UNINSTALL as true before deleting the plugin to purge data.
  */
+if (!defined('GFJ_ALLOW_DESTRUCTIVE_UNINSTALL') || GFJ_ALLOW_DESTRUCTIVE_UNINSTALL !== true) {
+    return;
+}
 
 // Delete all manuscripts (custom post type)
 $manuscripts = get_posts([
