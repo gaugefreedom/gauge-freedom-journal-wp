@@ -37,6 +37,7 @@ while ( have_posts() ) : the_post();
     $ai_disclosure = get_post_meta($article_id, '_gfj_ai_disclosure', true);
     $pub_date = get_post_meta($article_id, '_gfj_publication_date', true);
     $article_type_label = GFJ_Article_Post_Type::get_article_type_label($article_id);
+    $license_data = GFJ_Article_Post_Type::get_license_data($article_id);
 
     // Format date
     $pub_date_display = $pub_date ? date_i18n(get_option('date_format'), strtotime($pub_date)) : '';
@@ -209,13 +210,18 @@ while ( have_posts() ) : the_post();
 
                             <div class="gfj-sidebar-section">
                                 <h3>License</h3>
-                                <p>
-                                    <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">
-                                        <img src="https://mirrors.creativecommons.org/presskit/buttons/88x31/png/by.png" alt="CC BY 4.0" style="width:88px;">
-                                    </a>
-                                    <br>
-                                    This work is licensed under a Creative Commons Attribution 4.0 International License.
-                                </p>
+                                <div style="font-size: 13px; color: #666;">
+                                    <p>
+                                        <?php if (!empty($license_data['license_url'])): ?>
+                                            <a href="<?php echo esc_url($license_data['license_url']); ?>" target="_blank" rel="noopener">
+                                                <?php echo esc_html($license_data['license_label']); ?>
+                                            </a>
+                                        <?php else: ?>
+                                            <?php echo esc_html($license_data['license_label']); ?>
+                                        <?php endif; ?>
+                                    </p>
+                                    <p><?php echo esc_html($license_data['review_status_label']); ?></p>
+                                </div>
                             </div>
 
                         </div>

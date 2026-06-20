@@ -212,6 +212,7 @@ class GFJ_Public {
         $citation_override = get_post_meta($post_id, '_gfj_citation_override', true);
         $bibtex_override = get_post_meta($post_id, '_gfj_bibtex_override', true);
         $article_type_label = GFJ_Article_Post_Type::get_article_type_label($post_id);
+        $license_data = GFJ_Article_Post_Type::get_license_data($post_id);
         
         // Prepare Author String (or use specific meta if you have it)
         $authors = get_post_meta($post_id, '_gfj_author_display', true);
@@ -353,8 +354,16 @@ class GFJ_Public {
                     <div class="gfj-sidebar-section">
                         <h3>License</h3>
                         <div style="font-size: 13px; color: #666;">
-                            <p>CC-BY 4.0 International.</p>
-                            <p>Open Access & Double-Blind Reviewed.</p>
+                            <p>
+                                <?php if (!empty($license_data['license_url'])): ?>
+                                    <a href="<?php echo esc_url($license_data['license_url']); ?>" target="_blank" rel="noopener">
+                                        <?php echo esc_html($license_data['license_label']); ?>
+                                    </a>
+                                <?php else: ?>
+                                    <?php echo esc_html($license_data['license_label']); ?>
+                                <?php endif; ?>
+                            </p>
+                            <p><?php echo esc_html($license_data['review_status_label']); ?></p>
                         </div>
                     </div>
 

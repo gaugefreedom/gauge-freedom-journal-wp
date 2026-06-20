@@ -3,6 +3,9 @@
 class GFJ_Article_Post_Type {
 
     const ARTICLE_TYPE_META_KEY = '_gfj_article_type';
+    const DEFAULT_LICENSE_LABEL = 'CC BY 4.0 International';
+    const DEFAULT_LICENSE_URL = 'https://creativecommons.org/licenses/by/4.0/';
+    const DEFAULT_REVIEW_STATUS_LABEL = 'Open Access & Double-Blind Reviewed.';
 
     public function __construct() {
         add_action('init', [$this, 'register_post_type']);
@@ -52,6 +55,29 @@ class GFJ_Article_Post_Type {
         $options = self::get_article_type_options();
 
         return $options[$value];
+    }
+
+    public static function get_review_status_options() {
+        return [
+            'Open Access & Double-Blind Reviewed.' => 'Open Access & Double-Blind Reviewed.',
+            'Open Access & Peer Reviewed.' => 'Open Access & Peer Reviewed.',
+            'Open Access & Editorially Reviewed.' => 'Open Access & Editorially Reviewed.',
+            'Open Access Technical Note — Editorially Reviewed.' => 'Open Access Technical Note — Editorially Reviewed.',
+            'Open Access Editorial — Editorially Reviewed.' => 'Open Access Editorial — Editorially Reviewed.',
+            'Open Access & Not Externally Reviewed.' => 'Open Access & Not Externally Reviewed.',
+        ];
+    }
+
+    public static function get_license_data($post_id) {
+        $license_label = get_post_meta($post_id, '_gfj_license_label', true);
+        $license_url = get_post_meta($post_id, '_gfj_license_url', true);
+        $review_status_label = get_post_meta($post_id, '_gfj_review_status_label', true);
+
+        return [
+            'license_label' => $license_label ? $license_label : self::DEFAULT_LICENSE_LABEL,
+            'license_url' => $license_url ? $license_url : self::DEFAULT_LICENSE_URL,
+            'review_status_label' => $review_status_label ? $review_status_label : self::DEFAULT_REVIEW_STATUS_LABEL,
+        ];
     }
 
     /**
@@ -199,6 +225,9 @@ class GFJ_Article_Post_Type {
         $publication_date = get_post_meta($post->ID, '_gfj_publication_date', true);
         $source_manuscript_id = get_post_meta($post->ID, '_gfj_source_manuscript_id', true);
         $article_type = self::normalize_article_type(get_post_meta($post->ID, self::ARTICLE_TYPE_META_KEY, true));
+        $license_data = self::get_license_data($post->ID);
+        $review_status_options = self::get_review_status_options();
+        $review_status_is_custom = !isset($review_status_options[$license_data['review_status_label']]);
 
         // If key_findings is an array, we might want to display it as a list or handle it.
         // For simplicity in the admin text area, we'll treat it as text (maybe new line separated or HTML)
@@ -263,6 +292,32 @@ class GFJ_Article_Post_Type {
                 <th><label for="gfj_publication_date">Publication Date</label></th>
                 <td>
                     <input type="date" name="gfj_publication_date" id="gfj_publication_date" value="<?php echo esc_attr($publication_date); ?>" class="regular-text">
+                </td>
+            </tr>
+            <tr>
+                <th><label for="gfj_license_label">License Label</label></th>
+                <td>
+                    <input type="text" name="gfj_license_label" id="gfj_license_label" value="<?php echo esc_attr($license_data['license_label']); ?>" class="large-text">
+                </td>
+            </tr>
+            <tr>
+                <th><label for="gfj_license_url">License URL</label></th>
+                <td>
+                    <input type="url" name="gfj_license_url" id="gfj_license_url" value="<?php echo esc_url($license_data['license_url']); ?>" class="large-text">
+                </td>
+            </tr>
+            <tr>
+                <th><label for="gfj_review_status_label">Review / Access Status</label></th>
+                <td>
+                    <select name="gfj_review_status_label" id="gfj_review_status_label">
+                        <?php foreach ($review_status_options as $value => $label): ?>
+                            <option value="<?php echo esc_attr($value); ?>" <?php selected($license_data['review_status_label'], $value); ?>>
+                                <?php echo esc_html($label); ?>
+                            </option>
+                        <?php endforeach; ?>
+                        <option value="__custom__" <?php selected($review_status_is_custom); ?>>Custom</option>
+                    </select>
+                    <input type="text" name="gfj_review_status_custom" id="gfj_review_status_custom" value="<?php echo $review_status_is_custom ? esc_attr($license_data['review_status_label']) : ''; ?>" class="large-text" placeholder="Custom review/access status" style="margin-top: 8px;">
                 </td>
             </tr>
             <tr>
@@ -382,6 +437,9 @@ class GFJ_Article_Post_Type {
             'gfj_latex_url'            => 'esc_url_raw',
             'gfj_artifacts_url'        => 'esc_url_raw',
             'gfj_publication_date'     => 'sanitize_text_field',
+            'gfj_license_label'        => 'sanitize_text_field',
+            'gfj_license_url'          => 'esc_url_raw',
+            'gfj_review_status_label'  => 'gfj_review_status_label',
             'gfj_significance'         => 'sanitize_textarea_field',
             'gfj_citation_override'    => 'wp_kses_post', // Allow HTML (italics etc)
             'gfj_bibtex_override'      => 'wp_kses_post', // Allow formatting
@@ -399,6 +457,10 @@ class GFJ_Article_Post_Type {
                     $value = wp_kses_post($value);
                 } elseif ($sanitizer === 'gfj_article_type') {
                     $value = self::normalize_article_type($value);
+                } elseif ($sanitizer === 'gfj_review_status_label') {
+                    $value = $value === '__custom__' && isset($_POST['gfj_review_status_custom'])
+                        ? sanitize_text_field($_POST['gfj_review_status_custom'])
+                        : sanitize_text_field($value);
                 } elseif (function_exists($sanitizer)) {
                     $value = $sanitizer($value);
                 }

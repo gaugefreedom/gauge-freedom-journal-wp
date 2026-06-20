@@ -111,12 +111,21 @@ if ($use_block_template_parts) {
                     ];
                     $volume_query = new WP_Query($args_volume);
                     
-                    if ($volume_query->have_posts()) : ?>
+                    if ($volume_query->have_posts()) :
+                        $volume_title = $volume->name;
+                        $show_issue_note = false;
+                        if ($volume->name === 'Volume 1 (2026)') {
+                            $volume_title = 'Volume 1, Issue 1 (2026) — Complete Issue';
+                            $show_issue_note = true;
+                        }
+                        ?>
                         <section class="gfj-volume-section">
-                            <h2 class="gfj-volume-title"><?php echo esc_html($volume->name); ?></h2>
+                            <h2 class="gfj-volume-title"><?php echo esc_html($volume_title); ?></h2>
+                            <?php if ($show_issue_note): ?>
+                                <p class="gfj-issue-description">Published online under a continuous-publication model, January–June 2026.</p>
+                            <?php endif; ?>
                             
                             <?php while ($volume_query->have_posts()) : $volume_query->the_post(); ?>
-                                <?php $gfj_card_type_override = 'Research'; ?>
                                 <?php include $card_template; ?>
                             <?php endwhile; ?>
                             
